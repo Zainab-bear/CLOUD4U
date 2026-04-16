@@ -18,17 +18,29 @@ export default function Layout({ children }) {
         </h1>
 
         <div className="space-y-3">
-          <div onClick={() => navigate("/dashboard")} className="p-3 rounded-xl hover:bg-purple-100 cursor-pointer">
-            📁 All Files
-          </div>
+          <div
+  onClick={() => navigate("/dashboard")}
+  className="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-100 cursor-pointer"
+>
+  <img src="/filesicon.jpg" alt="All Files" className="w-7 h-7" />
+  <span>All Files</span>
+</div>
 
-          <div onClick={() => navigate("/dashboard?filter=starred")} className="p-3 rounded-xl hover:bg-yellow-100 cursor-pointer">
-            ⭐ Starred
-          </div>
+<div
+  onClick={() => navigate("/dashboard?filter=starred")}
+  className="flex items-center gap-3 p-3 rounded-xl hover:bg-yellow-100 cursor-pointer"
+>
+  <img src="/star-icon-32.png" alt="Starred" className="w-6 h-6" />
+  <span>Starred</span>
+</div>
 
-          <div onClick={() => navigate("/bin")} className="p-3 rounded-xl hover:bg-red-100 cursor-pointer">
-            🗑️ Bin
-          </div>
+<div
+  onClick={() => navigate("/bin")}
+  className="flex items-center gap-3 p-3 rounded-xl hover:bg-red-100 cursor-pointer"
+>
+  <img src="/bin.png" alt="Bin" className="w-13 h-7" />
+  <span>Bin</span>
+</div>
         </div>
       </div>
 
