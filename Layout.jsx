@@ -30,7 +30,7 @@ export default function Layout({ children }) {
   onClick={() => navigate("/dashboard?filter=starred")}
   className="flex items-center gap-3 p-3 rounded-xl hover:bg-yellow-100 cursor-pointer"
 >
-  <img src="/sta-icon-32.png" alt="Starred" className="w-6 h-6" />
+  <img src="/star-icon-32.png" alt="Starred" className="w-6 h-6" />
   <span>Starred</span>
 </div>
 
