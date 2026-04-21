@@ -3,6 +3,7 @@ import Layout from "../components/Layout"
 import { foldersDB, binDB } from "../mockData"
 import FileCard from "../components/FileCard"
 import toast from "react-hot-toast"
+import api from "../api"
 
 export default function Dashboard() {
   const [folders, setFolders] = useState(foldersDB)
@@ -20,6 +21,32 @@ export default function Dashboard() {
     }
   }, [selectedFile])
 
+  // 📡 Load real files from backend on mount
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const { data } = await api.get("/api/files")
+
+        const mapped = data.map((f) => ({
+          id: f.id,
+          name: f.filename,
+          starred: false,
+        }))
+
+        setFolders((prev) =>
+          prev.map((folder, i) =>
+            i === 0 ? { ...folder, files: mapped } : folder
+          )
+        )
+        setCurrentFolder((prev) => (prev.id === foldersDB[0].id ? { ...prev, files: mapped } : prev))
+      } catch (err) {
+        console.error("Failed to load files:", err)
+      }
+    }
+
+    fetchFiles()
+  }, [])
+
   // CREATE FOLDER
   const createFolder = () => {
     const name = prompt("Folder name:")
@@ -31,27 +58,53 @@ export default function Dashboard() {
   }
 
   // UPLOAD
-  const handleFile = (file) => {
+  const handleFile = async (file) => {
     if (!file) return
 
-    const newFile = {
-      id: Date.now(),
-      name: file.name,
-      file,
-      starred: false
-    }
+    try {
+      // 1. Get presigned upload URL from backend
+      const { data: presignData } = await api.post("/api/presign", {
+        filename: file.name,
+        contentType: file.type,
+      })
 
-    const updatedFolders = folders.map(folder => {
-      if (folder.id === currentFolder.id) {
-        return { ...folder, files: [...folder.files, newFile] }
+      // 2. Upload file directly to S3 via presigned URL
+      await fetch(presignData.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      })
+
+      // 3. Save file metadata to backend database
+      await api.post("/api/files", {
+        filename: file.name,
+        objectKey: presignData.objectKey,
+      })
+
+      // 4. Update local state so UI reflects the new file immediately
+      const newFile = {
+        id: Date.now(),
+        name: file.name,
+        file,
+        starred: false,
       }
-      return folder
-    })
 
-    setFolders(updatedFolders)
-    setCurrentFolder(updatedFolders.find(f => f.id === currentFolder.id))
+      const updatedFolders = folders.map((folder) => {
+        if (folder.id === currentFolder.id) {
+          return { ...folder, files: [...folder.files, newFile] }
+        }
+        return folder
+      })
 
-    toast.success("Uploaded 🚀")
+      setFolders(updatedFolders)
+      setCurrentFolder(updatedFolders.find((f) => f.id === currentFolder.id))
+
+      // 5. Success toast
+      toast.success("Uploaded 🚀")
+    } catch (err) {
+      console.error("Upload failed:", err)
+      toast.error("Upload failed — please try again")
+    }
   }
 
   // DELETE
