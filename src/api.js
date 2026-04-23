@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000'
+  baseURL: 'http://Group39-ALB-174747765.us-east-1.elb.amazonaws.com'
 })
 
 export default api
